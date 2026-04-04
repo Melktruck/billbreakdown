@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Chamber {
+  HOUSE
+  SENATE
+  JOINT
+  UNKNOWN
+}
+
+enum BillStatus {
+  INTRODUCED
+  REFERRED
+  COMMITTEE
+  FLOOR
+  PASSED_CHAMBER
+  PASSED_BOTH
+  ENROLLED
+  SIGNED
+  VETOED
+  FAILED
+  UNKNOWN
+}
+
+enum Level {
+  FEDERAL
+  STATE
+}
+
+model Bill {
+  id              String      @id @default(cuid())
+  externalId      String      @unique // Congress.gov or LegiScan ID
+  source          String      // "congress" | "legiscan"
+  level           Level
+  state           String?     // null for federal; 2-letter state code for state bills
+  billNumber      String
+  title           String
+  shortTitle      String?
+  chamber         Chamber     @default(UNKNOWN)
+  status          BillStatus  @default(UNKNOWN)
+  introducedDate  DateTime?
+  lastActionDate  DateTime?
+  lastAction      String?
+  aiSummary       String?     @db.Text
+  aiSummaryDate   DateTime?
+  sponsors        Json?       // Array of sponsor objects
+  subjects        String[]    // Subject tags
+  keywords        String[]
+  rawData         Json?       // Full API response stored for reference
+  sourceUrl       String?     // Link to official bill page
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  history         BillHistory[]
+  votes           Vote[]
+
+  @@index([level])
+  @@index([state])
+  @@index([status])
+  @@index([introducedDate])
+  @@index([lastActionDate])
+  @@index([billNumber])
+}
+
+model BillHistory {
+  id          String   @id @default(cuid())
+  billId      String
+  date        DateTime
+  action      String   @db.Text
+  chamber     Chamber  @default(UNKNOWN)
+  actionCode  String?
+  createdAt   DateTime @default(now())
+
+  bill        Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId])
+  @@index([date])
+}
+
+model Vote {
+  id          String   @id @default(cuid())
+  billId      String
+  date        DateTime
+  chamber     Chamber
+  question    String?
+  result      String?
+  yeas        Int?
+  nays        Int?
+  present     Int?
+  notVoting   Int?
+  rawData     Json?
+  createdAt   DateTime @default(now())
+
+  bill        Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId])
+}

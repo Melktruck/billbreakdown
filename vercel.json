@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/federal",
+      "schedule": "0 */8 * * *"
+    },
+    {
+      "path": "/api/cron/states",
+      "schedule": "0 */12 * * *"
+    }
+  ]
+}
