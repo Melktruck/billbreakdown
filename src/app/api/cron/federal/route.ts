@@ -103,9 +103,9 @@ export async function GET(request: NextRequest) {
             billNumber: `${type} ${number}`,
             title: billData.title,
             chamber:
-              billData.originChamberCode === "H"
+              billData.originChamber?.toLowerCase().includes("house")
                 ? "HOUSE"
-                : billData.originChamberCode === "S"
+                : billData.originChamber?.toLowerCase().includes("senate")
                 ? "SENATE"
                 : ("UNKNOWN" as const),
             status: statusStr as "INTRODUCED" | "REFERRED" | "COMMITTEE" | "FLOOR" | "PASSED_CHAMBER" | "PASSED_BOTH" | "ENROLLED" | "SIGNED" | "VETOED" | "FAILED" | "UNKNOWN",
