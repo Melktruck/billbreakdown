@@ -80,10 +80,24 @@ async function congressFetch<T>(path: string, params?: Record<string, string>): 
   return res.json() as Promise<T>;
 }
 
-export async function getRecentBills(congress = 119, limit = 50, offset = 0) {
+export async function getRecentBills(
+  congress = 119,
+  limit = 50,
+  offset = 0,
+  fromDateTime?: string
+) {
+  const params: Record<string, string> = {
+    limit: String(limit),
+    offset: String(offset),
+    // Space gets encoded as "+" by URLSearchParams — Congress.gov expects "updateDate+desc"
+    sort: "updateDate desc",
+  };
+  if (fromDateTime) {
+    params.fromDateTime = fromDateTime;
+  }
   return congressFetch<{ bills: CongressBill[]; pagination: { count: number; next?: string } }>(
     `/bill/${congress}`,
-    { limit: String(limit), offset: String(offset), sort: "updateDate+desc" }
+    params
   );
 }
 
