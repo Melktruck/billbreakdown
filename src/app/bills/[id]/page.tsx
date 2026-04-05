@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import {
   ArrowLeft,
   ExternalLink,
-  Bookmark,
   Calendar,
   FileText,
   Activity,
@@ -13,6 +12,7 @@ import {
 } from "lucide-react";
 import { db } from "@/lib/db";
 import { BillTimeline } from "@/components/BillTimeline";
+import { SaveBillButton } from "@/components/SaveBillButton";
 import { cn, formatStatus, getStateName, getStatusColor } from "@/lib/utils";
 
 interface BillPageProps {
@@ -120,13 +120,7 @@ export default async function BillPage({ params }: BillPageProps) {
               View official bill
             </a>
           )}
-          <button
-            onClick={() => {}}
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900"
-          >
-            <Bookmark className="h-4 w-4" />
-            Save bill
-          </button>
+          <SaveBillButton billId={bill.id} billNumber={bill.billNumber} />
         </div>
       </div>
 
