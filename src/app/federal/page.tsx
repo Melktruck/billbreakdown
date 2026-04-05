@@ -5,6 +5,8 @@ import { BillCard } from "@/components/BillCard";
 import { BillSearch } from "@/components/BillSearch";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Federal Bills",
   description: "Browse and search U.S. Congress bills from the House and Senate in plain English.",

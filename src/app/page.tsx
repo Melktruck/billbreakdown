@@ -5,6 +5,8 @@ import { BillSearch } from "@/components/BillSearch";
 import { BillCard } from "@/components/BillCard";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 async function getRecentBills() {
   try {
     return await db.bill.findMany({

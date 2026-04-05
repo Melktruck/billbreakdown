@@ -5,6 +5,8 @@ import { Globe, ArrowRight } from "lucide-react";
 import { db } from "@/lib/db";
 import { getStateName, US_STATES } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "State Legislatures",
   description: "Browse bills from all 50 U.S. state legislatures explained in plain English.",
