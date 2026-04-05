@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/states",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/cron/summarize",
+      "schedule": "0 8 * * *"
     }
   ]
 }

@@ -8,8 +8,7 @@ import {
 } from "@/lib/congress-api";
 import { generateBillSummary } from "@/lib/ai-summary";
 
-// Vercel Cron: runs every 8 hours
-// vercel.json: { "crons": [{ "path": "/api/cron/federal", "schedule": "0 */8 * * *" }] }
+export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
   // Secure the cron endpoint (header or query param)

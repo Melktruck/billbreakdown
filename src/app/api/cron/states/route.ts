@@ -12,6 +12,8 @@ import { generateBillSummary } from "@/lib/ai-summary";
 // Vercel Cron: runs every 12 hours
 // vercel.json: { "crons": [{ "path": "/api/cron/states", "schedule": "0 */12 * * *" }] }
 
+export const maxDuration = 60;
+
 // Default to Rhode Island for testing; set LEGISCAN_BATCH_STATES env var to expand (e.g. "RI,MA,CT")
 const BATCH_STATES = process.env.LEGISCAN_BATCH_STATES?.split(",") ?? ["RI"];
 
