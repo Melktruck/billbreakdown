@@ -21,14 +21,8 @@ export async function GET(request: NextRequest) {
   const results = { created: 0, updated: 0, errors: 0, skipped: 0 };
   const cap = parseInt(request.nextUrl.searchParams.get("cap") ?? "50");
 
-  // Optional: only fetch bills updated since a given date (YYYY-MM-DDT00:00:00Z)
-  // Defaults to 90 days ago so we get a meaningful recent window
-  const daysBack = parseInt(request.nextUrl.searchParams.get("days") ?? "90");
-  const since = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
-  const fromDateTime = since.toISOString().replace(/\.\d{3}Z$/, "Z");
-
   try {
-    // Fetch recent bills from current Congress (119th)
+    // Fetch recent bills from current Congress (119th), sorted by most recently updated
     const congress = 119;
     let offset = 0;
     const limit = 20;
@@ -36,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     while (hasMore && offset < cap) {
       // cap at `cap` bills per run (default 50)
-      const response = await getRecentBills(congress, limit, offset, fromDateTime);
+      const response = await getRecentBills(congress, limit, offset);
       const bills = response.bills ?? [];
 
       if (bills.length < limit) hasMore = false;

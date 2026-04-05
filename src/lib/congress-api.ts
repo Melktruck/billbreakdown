@@ -70,7 +70,7 @@ async function congressFetch<T>(path: string, params?: Record<string, string>): 
   }
 
   const res = await fetch(url.toString(), {
-    next: { revalidate: 3600 }, // cache for 1 hour
+    cache: "no-store", // always fetch fresh — cron runs need live data
   });
 
   if (!res.ok) {
