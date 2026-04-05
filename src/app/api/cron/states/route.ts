@@ -16,8 +16,11 @@ import { generateBillSummary } from "@/lib/ai-summary";
 const BATCH_STATES = process.env.LEGISCAN_BATCH_STATES?.split(",") ?? ["RI"];
 
 export async function GET(request: NextRequest) {
+  // Secure the cron endpoint (header or query param)
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const querySecret = request.nextUrl.searchParams.get("secret");
+  const secret = process.env.CRON_SECRET;
+  if (authHeader !== `Bearer ${secret}` && querySecret !== secret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
