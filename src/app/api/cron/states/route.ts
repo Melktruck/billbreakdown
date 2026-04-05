@@ -5,10 +5,7 @@ import {
   getMasterList,
   getBill,
   mapLegiScanStatus,
-  LEGISCAN_STATES,
 } from "@/lib/legiscan-api";
-import { generateBillSummary } from "@/lib/ai-summary";
-
 // Vercel Cron: runs every 12 hours
 // vercel.json: { "crons": [{ "path": "/api/cron/states", "schedule": "0 */12 * * *" }] }
 
@@ -26,7 +23,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const results = { created: 0, updated: 0, errors: 0, skipped: 0, states: 0 };
+  // Support offset/limit for paginated ingestion passes
+  const offset = parseInt(request.nextUrl.searchParams.get("offset") ?? "0", 10);
+  const limit = parseInt(request.nextUrl.searchParams.get("limit") ?? "50", 10);
+
+  const results = { created: 0, updated: 0, errors: 0, skipped: 0, states: 0, offset, limit };
 
   for (const stateCode of BATCH_STATES) {
     try {
@@ -42,8 +43,9 @@ export async function GET(request: NextRequest) {
       const masterRes = await getMasterList(currentSession.session_id);
       const masterList = masterRes.masterlist ?? {};
 
-      // Process bills that have changed recently
-      const billEntries = Object.values(masterList).slice(0, 30); // Limit per state per run
+      // Paginate through the master list using offset + limit
+      const allEntries = Object.values(masterList);
+      const billEntries = allEntries.slice(offset, offset + limit);
 
       for (const entry of billEntries) {
         try {
@@ -77,25 +79,8 @@ export async function GET(request: NextRequest) {
 
           const subjects = (bill.subjects ?? []).map((s) => s.subject_name);
 
-          const actionTexts = (bill.history ?? []).map((h) => h.action).slice(0, 10);
-
-          // Generate AI summary for new bills
-          let aiSummary: string | undefined;
-          let aiSummaryDate: Date | undefined;
-
-          if (!existing) {
-            try {
-              aiSummary = await generateBillSummary(
-                bill.title,
-                bill.description,
-                actionTexts,
-                isStateLevel ? stateCode : null
-              );
-              aiSummaryDate = new Date();
-            } catch {
-              // Continue without summary
-            }
-          }
+          // AI summary is handled by the dedicated /api/cron/summarize endpoint
+          // (keeps this ingestion cron fast and within the 60s Vercel limit)
 
           const billRecord = {
             externalId,
@@ -118,7 +103,6 @@ export async function GET(request: NextRequest) {
             subjects,
             rawData: bill as object,
             sourceUrl: bill.state_link ?? bill.url ?? null,
-            ...(aiSummary ? { aiSummary, aiSummaryDate } : {}),
           };
 
           if (existing) {
