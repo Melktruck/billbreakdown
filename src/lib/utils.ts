@@ -42,17 +42,17 @@ export function formatStatus(status: string): string {
 
 export function getStatusColor(status: string): string {
   const map: Record<string, string> = {
-    INTRODUCED: "bg-blue-100 text-blue-800",
-    REFERRED: "bg-purple-100 text-purple-800",
-    COMMITTEE: "bg-yellow-100 text-yellow-800",
-    FLOOR: "bg-orange-100 text-orange-800",
-    PASSED_CHAMBER: "bg-green-100 text-green-800",
-    PASSED_BOTH: "bg-emerald-100 text-emerald-800",
-    ENROLLED: "bg-teal-100 text-teal-800",
-    SIGNED: "bg-green-200 text-green-900",
-    VETOED: "bg-red-100 text-red-800",
-    FAILED: "bg-gray-100 text-gray-800",
-    UNKNOWN: "bg-gray-100 text-gray-500",
+    INTRODUCED:     "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
+    REFERRED:       "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
+    COMMITTEE:      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
+    FLOOR:          "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
+    PASSED_CHAMBER: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
+    PASSED_BOTH:    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
+    ENROLLED:       "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-300",
+    SIGNED:         "bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-200",
+    VETOED:         "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
+    FAILED:         "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+    UNKNOWN:        "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
   };
-  return map[status] ?? "bg-gray-100 text-gray-500";
+  return map[status] ?? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400";
 }
