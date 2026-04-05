@@ -1,0 +1,32 @@
+name: Summarize Bills (Background)
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+
+    steps:
+      - name: Run 4 summarize batches
+        run: |
+          for i in 1 2 3 4; do
+            echo "--- Batch $i/4 ---"
+            RESPONSE=$(curl -s --max-time 65 \
+              "https://billbreakdown.vercel.app/api/cron/summarize?batch=5" \
+              -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+            echo "$RESPONSE"
+
+            REMAINING=$(echo "$RESPONSE" | python3 -c \
+              "import sys,json; d=json.load(sys.stdin); print(d.get('remaining',9999))" 2>/dev/null || echo "9999")
+
+            if [ "$REMAINING" = "0" ]; then
+              echo "All bills summarized! Stopping."
+              exit 0
+            fi
+
+            if [ "$i" -lt "4" ]; then sleep 5; fi
+          done
