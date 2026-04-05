@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '*/10 * * * *'
   workflow_dispatch: {}
+  workflow_run:
+    workflows: ["Summarize Bills (Background)"]
+    types: [completed]
 
 jobs:
   summarize:
@@ -11,10 +14,10 @@ jobs:
     timeout-minutes: 9
 
     steps:
-      - name: Run summarize batches (8x5 = 40 bills)
+      - name: Run summarize batches (10x5 = 50 bills)
         run: |
-          for i in 1 2 3 4 5 6 7 8; do
-            echo "--- Batch $i/8 ---"
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            echo "--- Batch $i/10 ---"
             RESPONSE=$(curl -s --max-time 65 \
               "https://billbreakdown.vercel.app/api/cron/summarize?batch=5" \
               -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
@@ -28,5 +31,5 @@ jobs:
               exit 0
             fi
 
-            if [ "$i" -lt "8" ]; then sleep 5; fi
+            if [ "$i" -lt "10" ]; then sleep 5; fi
           done
