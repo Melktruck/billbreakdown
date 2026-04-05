@@ -32,8 +32,16 @@ export function BillCard({
   aiSummary,
 }: BillCardProps) {
   const displayTitle = shortTitle ?? title;
-  const teaser = aiSummary
-    ? aiSummary.split(".")[0] + "."
+  // Strip markdown headers/formatting then grab first sentence for the teaser
+  const cleanSummary = aiSummary
+    ? aiSummary
+        .replace(/^#{1,6}\s+[^\n]*\n*/gm, "")  // remove ## headings
+        .replace(/\*\*/g, "")                   // remove bold **
+        .replace(/\*/g, "")                     // remove italic *
+        .trim()
+    : null;
+  const teaser = cleanSummary
+    ? (cleanSummary.split(".")[0] + ".").trim()
     : lastAction ?? "No summary available yet.";
 
   return (
