@@ -12,7 +12,8 @@ import { generateBillSummary } from "@/lib/ai-summary";
 // Vercel Cron: runs every 12 hours
 // vercel.json: { "crons": [{ "path": "/api/cron/states", "schedule": "0 */12 * * *" }] }
 
-const BATCH_STATES = process.env.LEGISCAN_BATCH_STATES?.split(",") ?? LEGISCAN_STATES.slice(0, 5);
+// Default to Rhode Island for testing; set LEGISCAN_BATCH_STATES env var to expand (e.g. "RI,MA,CT")
+const BATCH_STATES = process.env.LEGISCAN_BATCH_STATES?.split(",") ?? ["RI"];
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
