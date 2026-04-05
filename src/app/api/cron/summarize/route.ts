@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, message: "All bills already have summaries", processed: 0 });
   }
 
-  const results = { processed: 0, errors: 0, remaining: 0 };
+  const results: { processed: number; errors: number; remaining: number; errorDetails: string[] } = { processed: 0, errors: 0, remaining: 0, errorDetails: [] };
 
   for (const bill of bills) {
     try {
@@ -67,7 +67,9 @@ export async function GET(request: NextRequest) {
 
       results.processed++;
     } catch (err) {
-      console.error(`Failed to summarize bill ${bill.id}:`, err);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to summarize bill ${bill.id}:`, msg);
+      results.errorDetails.push(`${bill.id}: ${msg}`);
       results.errors++;
     }
   }
