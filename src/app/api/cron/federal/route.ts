@@ -6,7 +6,6 @@ import {
   getBillActions,
   mapCongressStatus,
 } from "@/lib/congress-api";
-import { generateBillSummary } from "@/lib/ai-summary";
 
 export const maxDuration = 60;
 
@@ -20,16 +19,17 @@ export async function GET(request: NextRequest) {
   }
 
   const results = { created: 0, updated: 0, errors: 0, skipped: 0 };
+  const cap = parseInt(request.nextUrl.searchParams.get("cap") ?? "50");
 
   try {
     // Fetch recent bills from current Congress (119th)
     const congress = 119;
     let offset = 0;
-    const limit = 50;
+    const limit = 20;
     let hasMore = true;
 
-    while (hasMore && offset < 200) {
-      // cap at 200 bills per run
+    while (hasMore && offset < cap) {
+      // cap at `cap` bills per run (default 50)
       const response = await getRecentBills(congress, limit, offset);
       const bills = response.bills ?? [];
 
@@ -78,24 +78,7 @@ export async function GET(request: NextRequest) {
             billData.subjects?.policyArea?.name,
           ].filter(Boolean) as string[];
 
-          // Generate AI summary if new or no summary
-          let aiSummary: string | undefined;
-          let aiSummaryDate: Date | undefined;
-
-          if (!existing || !existing.id) {
-            try {
-              aiSummary = await generateBillSummary(
-                billData.title,
-                billData.summaries?.summary?.[0]?.text ?? "",
-                actionTexts,
-                null
-              );
-              aiSummaryDate = new Date();
-            } catch (aiError) {
-              console.error("AI summary error:", aiError);
-            }
-          }
-
+          // AI summaries are generated separately by /api/cron/summarize
           const billRecord = {
             externalId,
             source: "congress",
@@ -119,7 +102,6 @@ export async function GET(request: NextRequest) {
             subjects,
             rawData: billData as object,
             sourceUrl: `https://www.congress.gov/bill/${congress}th-congress/${type.toLowerCase().replace("_", "-")}-bill/${number}`,
-            ...(aiSummary ? { aiSummary, aiSummaryDate } : {}),
           };
 
           if (existing) {
