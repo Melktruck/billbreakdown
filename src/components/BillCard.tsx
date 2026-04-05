@@ -38,11 +38,11 @@ export function BillCard({
 
   return (
     <Link href={`/bills/${id}`} className="block group">
-      <Card className="h-full transition-all group-hover:shadow-md group-hover:border-blue-200">
+      <Card className="h-full transition-all group-hover:shadow-md group-hover:border-blue-200 dark:group-hover:border-blue-800 dark:bg-gray-900 dark:border-gray-800">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
             <div className="flex flex-wrap gap-2">
-              <span className="text-xs font-mono font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+              <span className="text-xs font-mono font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
                 {billNumber}
               </span>
               <span
@@ -54,25 +54,25 @@ export function BillCard({
                 {formatStatus(status)}
               </span>
               {level === "FEDERAL" ? (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300">
                   Federal
                 </span>
               ) : (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300">
                   {state ? getStateName(state) : "State"}
                 </span>
               )}
             </div>
-            <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-0.5" />
+            <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex-shrink-0 mt-0.5" />
           </div>
 
-          <h3 className="font-semibold text-gray-900 leading-snug mb-2 line-clamp-2">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-2 line-clamp-2">
             {displayTitle}
           </h3>
 
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">{teaser}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">{teaser}</p>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-gray-500">
             {introducedDate && (
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />

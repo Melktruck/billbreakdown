@@ -44,10 +44,10 @@ export default async function FederalPage() {
     <div className="container mx-auto px-4 py-10">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <Landmark className="h-7 w-7 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">U.S. Congress Bills</h1>
+          <Landmark className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">U.S. Congress Bills</h1>
         </div>
-        <p className="text-gray-600 ml-10">
+        <p className="text-gray-600 dark:text-gray-400 ml-10">
           House and Senate legislation explained in plain English.
         </p>
       </div>
@@ -60,7 +60,7 @@ export default async function FederalPage() {
 
       {bills.length > 0 ? (
         <>
-          <p className="text-sm text-gray-500 mb-4">{bills.length} federal bills</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{bills.length} federal bills</p>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {bills.map((bill) => (
               <BillCard
@@ -81,7 +81,7 @@ export default async function FederalPage() {
           </div>
         </>
       ) : (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">
           <Landmark className="h-12 w-12 mx-auto mb-3 opacity-30" />
           <p className="text-lg">No federal bills loaded yet.</p>
           <p className="text-sm mt-1">The ingestion pipeline will populate this once it runs.</p>

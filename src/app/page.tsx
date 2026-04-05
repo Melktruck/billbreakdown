@@ -51,12 +51,12 @@ export default async function HomePage() {
     <div className="container mx-auto px-4 py-12">
       {/* Hero */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 leading-tight">
           Government Legislation,{" "}
-          <span className="text-blue-600">in Plain English</span>
+          <span className="text-blue-600 dark:text-blue-400">in Plain English</span>
         </h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-          Search and understand bills from all 50 states and the U.S. Congress.
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+          Search and understand bills from the U.S. Congress and Rhode Island.
           AI-powered summaries that anyone can read.
         </p>
 
@@ -70,69 +70,53 @@ export default async function HomePage() {
       {/* Stats */}
       {stats.total > 0 && (
         <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-12">
-          <div className="text-center p-4 bg-white rounded-lg border">
-            <div className="text-2xl font-bold text-blue-600">{stats.total.toLocaleString()}</div>
-            <div className="text-xs text-gray-500 mt-1">Total Bills</div>
+          <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total.toLocaleString()}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total Bills</div>
           </div>
-          <div className="text-center p-4 bg-white rounded-lg border">
-            <div className="text-2xl font-bold text-blue-600">{stats.federal.toLocaleString()}</div>
-            <div className="text-xs text-gray-500 mt-1">Federal</div>
+          <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.federal.toLocaleString()}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Federal</div>
           </div>
-          <div className="text-center p-4 bg-white rounded-lg border">
-            <div className="text-2xl font-bold text-blue-600">{stats.stateCount}</div>
-            <div className="text-xs text-gray-500 mt-1">States Covered</div>
+          <div className="text-center p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.stateCount}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">States Covered</div>
           </div>
         </div>
       )}
 
       {/* Quick Nav */}
-      <div className="grid md:grid-cols-3 gap-4 mb-12">
+      <div className="grid md:grid-cols-2 gap-4 mb-12 max-w-2xl mx-auto">
         <Link
           href="/federal"
-          className="flex items-center gap-4 p-5 bg-white rounded-xl border hover:border-blue-300 hover:shadow-md transition-all group"
+          className="flex items-center gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
         >
-          <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Landmark className="h-6 w-6 text-blue-600" />
+          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+            <Landmark className="h-6 w-6 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <div className="font-semibold text-gray-900 group-hover:text-blue-700">
+            <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400">
               U.S. Congress
             </div>
-            <div className="text-sm text-gray-500">House &amp; Senate bills</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">House &amp; Senate bills</div>
           </div>
-          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 ml-auto" />
+          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 ml-auto" />
         </Link>
 
         <Link
           href="/states"
-          className="flex items-center gap-4 p-5 bg-white rounded-xl border hover:border-blue-300 hover:shadow-md transition-all group"
+          className="flex items-center gap-4 p-5 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all group"
         >
-          <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-            <Globe className="h-6 w-6 text-indigo-600" />
+          <div className="h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
+            <Globe className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <div className="font-semibold text-gray-900 group-hover:text-blue-700">
-              State Legislatures
+            <div className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400">
+              Rhode Island
             </div>
-            <div className="text-sm text-gray-500">All 50 states</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">State legislature bills</div>
           </div>
-          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 ml-auto" />
-        </Link>
-
-        <Link
-          href="/search?status=SIGNED"
-          className="flex items-center gap-4 p-5 bg-white rounded-xl border hover:border-blue-300 hover:shadow-md transition-all group"
-        >
-          <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="h-6 w-6 text-green-600" />
-          </div>
-          <div>
-            <div className="font-semibold text-gray-900 group-hover:text-blue-700">
-              Recently Signed
-            </div>
-            <div className="text-sm text-gray-500">New laws</div>
-          </div>
-          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 ml-auto" />
+          <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 ml-auto" />
         </Link>
       </div>
 
@@ -140,8 +124,8 @@ export default async function HomePage() {
       {recentBills.length > 0 ? (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recently Updated Bills</h2>
-            <Link href="/search" className="text-sm text-blue-600 hover:underline flex items-center gap-1">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Recently Updated Bills</h2>
+            <Link href="/search" className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
               Browse all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
@@ -165,7 +149,7 @@ export default async function HomePage() {
           </div>
         </section>
       ) : (
-        <div className="text-center py-16 text-gray-500">
+        <div className="text-center py-16 text-gray-500 dark:text-gray-400">
           <Landmark className="h-12 w-12 mx-auto mb-4 opacity-30" />
           <h3 className="text-lg font-medium mb-2">No bills loaded yet</h3>
           <p className="text-sm">
