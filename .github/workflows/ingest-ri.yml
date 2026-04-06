@@ -41,16 +41,19 @@ jobs:
 
             CREATED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('created',0))" 2>/dev/null || echo "0")
             UPDATED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('updated',0))" 2>/dev/null || echo "0")
-            TOTAL=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('total',0))" 2>/dev/null || echo "?")
+            SKIPPED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('skipped',0))" 2>/dev/null || echo "0")
+            ERRORS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('errors',0))" 2>/dev/null || echo "0")
+            BATCH_TOTAL=$((CREATED + UPDATED + SKIPPED + ERRORS))
 
             TOTAL_CREATED=$((TOTAL_CREATED + CREATED))
             TOTAL_UPDATED=$((TOTAL_UPDATED + UPDATED))
 
-            echo "  Created: $CREATED | Updated: $UPDATED | Batch total: $TOTAL"
+            echo "  Created: $CREATED | Updated: $UPDATED | Skipped: $SKIPPED | Errors: $ERRORS | Batch total: $BATCH_TOTAL"
 
-            if [ "$TOTAL" = "0" ] && [ "$OFFSET" -gt "0" ]; then
+            # Stop only when a batch returns truly nothing processed
+            if [ "$BATCH_TOTAL" -eq "0" ] && [ "$OFFSET" -gt "0" ]; then
               echo ""
-              echo "No bills returned at offset $OFFSET - reached end of master list."
+              echo "No bills processed at offset $OFFSET - reached end of master list."
               break
             fi
 
