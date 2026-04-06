@@ -2,22 +2,40 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ArrowLeft, ExternalLink, Calendar, FileText, Activity, Vote, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Calendar,
+  Activity,
+  Vote,
+  Sparkles,
+  Users,
+  GitBranch,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import { db } from "@/lib/db";
 import { BillTimeline } from "@/components/BillTimeline";
-import { SaveBillButton } from "@/components/SaveBillButton";
+import { TrackBillButton } from "@/components/TrackBillButton";
 import { ShareButton } from "@/components/ShareButton";
 import { cn, formatStatus, getStateName, getStatusColor } from "@/lib/utils";
 
-interface BillPageProps { params: Promise<{ id: string }>; }
+interface BillPageProps {
+  params: Promise<{ id: string }>;
+}
 
 async function getBill(id: string) {
   try {
     return await db.bill.findUnique({
       where: { id },
-      include: { history: { orderBy: { date: "desc" } }, votes: { orderBy: { date: "desc" } } },
+      include: {
+        history: { orderBy: { date: "asc" } },
+        votes: { orderBy: { date: "desc" } },
+      },
     });
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: BillPageProps): Promise<Metadata> {
@@ -30,20 +48,95 @@ export async function generateMetadata({ params }: BillPageProps): Promise<Metad
   };
 }
 
+const PROGRESS_STEPS = [
+  { key: "INTRODUCED", label: "Introduced" },
+  { key: "REFERRED", label: "Referred" },
+  { key: "COMMITTEE", label: "Committee" },
+  { key: "FLOOR", label: "Floor Vote" },
+  { key: "PASSED_CHAMBER", label: "Passed Chamber" },
+  { key: "PASSED_BOTH", label: "Passed Both" },
+  { key: "ENROLLED", label: "Enrolled" },
+  { key: "SIGNED", label: "Signed" },
+];
+
+const STATUS_STEP_INDEX: Record<string, number> = {
+  INTRODUCED: 0, REFERRED: 1, COMMITTEE: 2, FLOOR: 3,
+  PASSED_CHAMBER: 4, PASSED_BOTH: 5, ENROLLED: 6, SIGNED: 7,
+  VETOED: 7, FAILED: 3, UNKNOWN: 0,
+};
+
+function LegislativeProgress({ status }: { status: string }) {
+  const currentStep = STATUS_STEP_INDEX[status] ?? 0;
+  const isFailed = status === "FAILED" || status === "VETOED";
+  return (
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
+      <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+        <GitBranch className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+        Legislative Progress
+      </h3>
+      <div className="flex items-start gap-0 overflow-x-auto pb-2">
+        {PROGRESS_STEPS.map((step, idx) => {
+          const isCompleted = idx < currentStep;
+          const isCurrent = idx === currentStep;
+          return (
+            <div key={step.key} className="flex items-center flex-1 min-w-0">
+              <div className="flex flex-col items-center flex-shrink-0">
+                <div className={cn(
+                  "h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
+                  isCompleted ? "bg-blue-600 text-white"
+                    : isCurrent ? isFailed
+                      ? "bg-red-100 dark:bg-red-900/40 border-2 border-red-400 text-red-500"
+                      : "bg-blue-100 dark:bg-blue-900/40 border-2 border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-300 dark:text-gray-600"
+                )}>
+                  {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <Circle className="h-3 w-3" />}
+                </div>
+                <span className={cn(
+                  "text-[10px] mt-1 text-center whitespace-nowrap font-medium",
+                  isCompleted ? "text-blue-600 dark:text-blue-400"
+                    : isCurrent ? isFailed ? "text-red-500" : "text-blue-600 dark:text-blue-400"
+                    : "text-gray-400 dark:text-gray-600"
+                )}>
+                  {isCurrent && isFailed ? (status === "VETOED" ? "Vetoed" : "Failed") : step.label}
+                </span>
+              </div>
+              {idx < PROGRESS_STEPS.length - 1 && (
+                <div className={cn("h-0.5 flex-1 mx-1 mt-[-14px]", idx < currentStep ? "bg-blue-500" : "bg-gray-200 dark:bg-gray-700")} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default async function BillPage({ params }: BillPageProps) {
   const { id } = await params;
   const bill = await getBill(id);
   if (!bill) notFound();
 
-  const sponsors = bill.sponsors as Array<{ name: string; party: string; state?: string }> | null;
+  const sponsors = bill.sponsors as Array<{ name: string; party: string; state?: string; bioguideId?: string }> | null;
+
+  const committeeActions = bill.history.filter((h) =>
+    h.action.toLowerCase().includes("referred to") ||
+    h.action.toLowerCase().includes("committee on") ||
+    h.action.toLowerCase().includes("subcommittee")
+  );
+  const committees = Array.from(new Set(
+    committeeActions.map((h) => {
+      const match = h.action.match(/Committee on ([^.;,]+)/i) || h.action.match(/referred to the (.+?)(?: on \d|\.)/i);
+      return match ? match[1].trim() : null;
+    }).filter(Boolean)
+  )) as string[];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <Link href="/search" className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-6 transition-colors">
-        <ArrowLeft className="h-4 w-4" />Back to search
+        <ArrowLeft className="h-4 w-4" />
+        Back to search
       </Link>
 
-      {/* Header */}
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 md:p-8 mb-6">
         <div className="flex flex-wrap gap-2 mb-4">
           <span className="text-xs font-mono font-bold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{bill.billNumber}</span>
@@ -61,8 +154,12 @@ export default async function BillPage({ params }: BillPageProps) {
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 leading-tight mb-4">{bill.title}</h1>
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
-          {bill.introducedDate && <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" />Introduced {format(new Date(bill.introducedDate), "MMMM d, yyyy")}</span>}
-          {bill.lastActionDate && <span className="flex items-center gap-1.5"><Activity className="h-4 w-4" />Last action {format(new Date(bill.lastActionDate), "MMMM d, yyyy")}</span>}
+          {bill.introducedDate && (
+            <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" />Introduced {format(new Date(bill.introducedDate), "MMMM d, yyyy")}</span>
+          )}
+          {bill.lastActionDate && (
+            <span className="flex items-center gap-1.5"><Activity className="h-4 w-4" />Last action {format(new Date(bill.lastActionDate), "MMMM d, yyyy")}</span>
+          )}
         </div>
         <div className="flex flex-wrap gap-3 mt-5">
           {bill.sourceUrl && (
@@ -70,12 +167,15 @@ export default async function BillPage({ params }: BillPageProps) {
               <ExternalLink className="h-4 w-4" />View official bill
             </a>
           )}
-          <SaveBillButton billId={bill.id} billNumber={bill.billNumber} />
+          <TrackBillButton billId={bill.id} billNumber={bill.billNumber} />
           <ShareButton billNumber={bill.billNumber} />
         </div>
       </div>
 
-      {/* AI Summary */}
+      {bill.level === "FEDERAL" && (
+        <div className="mb-6"><LegislativeProgress status={bill.status} /></div>
+      )}
+
       <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 rounded-xl p-6 md:p-8 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -94,7 +194,7 @@ export default async function BillPage({ params }: BillPageProps) {
         ) : (
           <div className="flex items-center gap-3 py-4">
             <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="h-4 w-4 text-blue-500 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-blue-500 dark:text-blue-400 animate-pulse" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Summary is being generated</p>
@@ -119,17 +219,29 @@ export default async function BillPage({ params }: BillPageProps) {
         )}
         {sponsors && sponsors.length > 0 && (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Sponsor{sponsors.length > 1 ? "s" : ""}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+              <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />Sponsor{sponsors.length > 1 ? "s" : ""}
+            </h3>
             <div className="space-y-2">
               {sponsors.map((sponsor, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
-                  <div className="h-7 w-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 flex-shrink-0">
+                  <div className={cn("h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0",
+                    sponsor.party === "R" ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                    : sponsor.party === "D" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400")}>
                     {sponsor.name.charAt(0)}
                   </div>
                   <div>
                     <span className="font-medium text-gray-900 dark:text-gray-100">{sponsor.name}</span>
-                    {sponsor.party && <span className="text-gray-500 dark:text-gray-400 ml-1">({sponsor.party})</span>}
-                    {sponsor.state && <span className="text-gray-500 dark:text-gray-400 ml-1">— {sponsor.state}</span>}
+                    {sponsor.party && (
+                      <span className={cn("ml-1.5 text-xs font-semibold px-1.5 py-0.5 rounded",
+                        sponsor.party === "R" ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                        : sponsor.party === "D" ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400")}>
+                        {sponsor.party}
+                      </span>
+                    )}
+                    {sponsor.state && <span className="text-gray-500 dark:text-gray-400 ml-1.5 text-xs">— {sponsor.state}</span>}
                   </div>
                 </div>
               ))}
@@ -138,34 +250,65 @@ export default async function BillPage({ params }: BillPageProps) {
         )}
       </div>
 
+      {committees.length > 0 && (
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 mt-6">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-gray-500 dark:text-gray-400" />Committees
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {committees.map((committee, i) => (
+              <span key={i} className="text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg">
+                {committee}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {bill.votes.length > 0 && (
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 mt-6">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
             <Vote className="h-4 w-4 text-gray-500 dark:text-gray-400" />Voting Records
           </h3>
-          <div className="space-y-3">
-            {bill.votes.map((vote) => (
-              <div key={vote.id} className="border border-gray-100 dark:border-gray-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{vote.question ?? "Vote"}</span>
-                  <div className="flex gap-2 text-xs">
-                    <span className="text-gray-400 dark:text-gray-500">{format(new Date(vote.date), "MMM d, yyyy")}</span>
-                    {vote.result && (
-                      <span className={cn("font-semibold px-2 py-0.5 rounded-full", vote.result.toLowerCase().includes("pass") ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400")}>
-                        {vote.result}
-                      </span>
-                    )}
+          <div className="space-y-4">
+            {bill.votes.map((vote) => {
+              const total = (vote.yeas ?? 0) + (vote.nays ?? 0) + (vote.present ?? 0);
+              const yeaPct = total > 0 ? Math.round(((vote.yeas ?? 0) / total) * 100) : 0;
+              const nayPct = total > 0 ? Math.round(((vote.nays ?? 0) / total) * 100) : 0;
+              return (
+                <div key={vote.id} className="border border-gray-100 dark:border-gray-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{vote.question ?? "Vote"}</span>
+                    <div className="flex gap-2 text-xs items-center">
+                      <span className="text-gray-400 dark:text-gray-500">{format(new Date(vote.date), "MMM d, yyyy")}</span>
+                      {vote.result && (
+                        <span className={cn("font-semibold px-2 py-0.5 rounded-full",
+                          vote.result.toLowerCase().includes("pass")
+                            ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400"
+                            : "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400")}>
+                          {vote.result}
+                        </span>
+                      )}
+                    </div>
                   </div>
+                  {(vote.yeas != null || vote.nays != null) && (
+                    <>
+                      <div className="flex gap-4 text-sm mb-3">
+                        {vote.yeas != null && <span className="text-green-600 dark:text-green-400 font-semibold">✓ Yea: {vote.yeas}</span>}
+                        {vote.nays != null && <span className="text-red-600 dark:text-red-400 font-semibold">✗ Nay: {vote.nays}</span>}
+                        {vote.present != null && vote.present > 0 && <span className="text-gray-500 dark:text-gray-400">Present: {vote.present}</span>}
+                      </div>
+                      {total > 0 && (
+                        <div className="h-2.5 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 flex">
+                          <div className="bg-green-500 h-full transition-all" style={{ width: `${yeaPct}%` }} />
+                          <div className="bg-red-400 h-full transition-all" style={{ width: `${nayPct}%` }} />
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                {(vote.yeas != null || vote.nays != null) && (
-                  <div className="flex gap-4 text-sm">
-                    {vote.yeas != null && <span className="text-green-600 dark:text-green-400 font-medium">Yea: {vote.yeas}</span>}
-                    {vote.nays != null && <span className="text-red-600 dark:text-red-400 font-medium">Nay: {vote.nays}</span>}
-                    {vote.present != null && <span className="text-gray-500 dark:text-gray-400">Present: {vote.present}</span>}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -184,7 +327,8 @@ export default async function BillPage({ params }: BillPageProps) {
           <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Subjects</h3>
           <div className="flex flex-wrap gap-2">
             {bill.subjects.map((subject) => (
-              <Link key={subject} href={`/search?q=${encodeURIComponent(subject)}`} className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full transition-colors">
+              <Link key={subject} href={`/search?q=${encodeURIComponent(subject)}`}
+                className="text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full transition-colors">
                 {subject}
               </Link>
             ))}
