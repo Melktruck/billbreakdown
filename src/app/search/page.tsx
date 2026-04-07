@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Search } from "lucide-react";
 import { BillCard } from "@/components/BillCard";
 import { BillSearch } from "@/components/BillSearch";
 import { db } from "@/lib/db";
@@ -55,17 +57,9 @@ async function searchBills(params: {
         skip: (pageNum - 1) * pageSize,
         take: pageSize,
         select: {
-          id: true,
-          billNumber: true,
-          title: true,
-          shortTitle: true,
-          state: true,
-          level: true,
-          status: true,
-          introducedDate: true,
-          lastActionDate: true,
-          lastAction: true,
-          aiSummary: true,
+          id: true, billNumber: true, title: true, shortTitle: true,
+          state: true, level: true, status: true, introducedDate: true,
+          lastActionDate: true, lastAction: true, aiSummary: true,
         },
       }),
       db.bill.count({ where }),
@@ -80,11 +74,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const { bills, total, page, pageSize } = await searchBills(params);
   const totalPages = Math.ceil(total / pageSize);
+  const hasActiveFilters = params.q || params.state || params.status || params.level;
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Browse Bills</h1>
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">Browse Bills</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Search and filter federal and state legislation.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6">
         <Suspense>
           <BillSearch
             defaultQuery={params.q}
@@ -95,13 +98,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </Suspense>
       </div>
 
+      {/* Results */}
       {total > 0 ? (
         <>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
             {total.toLocaleString()} bill{total !== 1 ? "s" : ""} found
             {params.q ? ` for "${params.q}"` : ""}
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
             {bills.map((bill) => (
               <BillCard
                 key={bill.id}
@@ -121,22 +125,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
+            <div className="flex items-center justify-center gap-2 mt-8">
               {page > 1 && (
                 <a
                   href={`?${new URLSearchParams({ ...params, page: String(page - 1) })}`}
-                  className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Previous
                 </a>
               )}
-              <span className="px-4 py-2 text-sm text-gray-500">
-                Page {page} of {totalPages}
+              <span className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                {page} / {totalPages}
               </span>
               {page < totalPages && (
                 <a
                   href={`?${new URLSearchParams({ ...params, page: String(page + 1) })}`}
-                  className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Next
                 </a>
@@ -145,12 +149,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           )}
         </>
       ) : (
-        <div className="text-center py-20 text-gray-400">
-          <p className="text-lg">No bills found.</p>
-          {params.q && (
-            <p className="text-sm mt-1">
-              Try a different keyword or remove some filters.
-            </p>
+        <div className="text-center py-20 text-gray-400 dark:text-gray-500">
+          <Search className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="text-lg font-medium">No bills found</p>
+          {hasActiveFilters ? (
+            <p className="text-sm mt-1">Try different keywords or remove some filters.</p>
+          ) : (
+            <p className="text-sm mt-1">Bills will appear here once data ingestion runs.</p>
           )}
         </div>
       )}

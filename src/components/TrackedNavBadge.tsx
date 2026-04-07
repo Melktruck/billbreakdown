@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bell } from "lucide-react";
 
-export function TrackedNavBadge() {
+interface TrackedNavBadgeProps {
+  compact?: boolean;
+}
+
+export function TrackedNavBadge({ compact }: TrackedNavBadgeProps) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -24,12 +28,12 @@ export function TrackedNavBadge() {
   return (
     <Link
       href="/tracked"
-      className="relative flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
+      className="relative p-2 rounded-md text-gray-500 hover:text-blue-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-800 transition-colors"
+      aria-label={`Tracked bills${count > 0 ? ` (${count})` : ""}`}
     >
       <Bell className="h-4 w-4" />
-      <span>Tracked</span>
       {count > 0 && (
-        <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] flex items-center justify-center bg-amber-500 text-white text-[10px] font-bold rounded-full px-1">
+        <span className="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] flex items-center justify-center bg-blue-600 text-white text-[10px] font-bold rounded-full px-0.5 leading-none">
           {count > 99 ? "99+" : count}
         </span>
       )}

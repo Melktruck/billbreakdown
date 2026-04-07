@@ -48,7 +48,7 @@ export function BillCard({ id, billNumber, title, shortTitle, state, level, stat
           ) : (
             <div className="flex items-center gap-1.5 mb-3">
               <Clock className="h-3.5 w-3.5 text-gray-300 dark:text-gray-600" />
-              <span className="text-xs text-gray-400 dark:text-gray-500 italic">AI summary generating…</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 italic">AI summary generating...</span>
             </div>
           )}
 

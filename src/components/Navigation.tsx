@@ -1,58 +1,114 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Landmark, Search, FileText, Globe } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Landmark, Search, Bell, Menu, X } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { TrackedNavBadge } from "@/components/TrackedNavBadge";
+import { SearchBar } from "@/components/SearchBar";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS = [
+  { href: "/search", label: "Browse", icon: Search },
+  { href: "/federal", label: "Federal", icon: Landmark },
+  { href: "/states", label: "States", icon: null },
+];
 
 export function Navigation() {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-blue-700 dark:text-blue-400">
-          <Landmark className="h-6 w-6" />
-          <span>BillBreakdown</span>
+      <div className="container mx-auto flex h-14 items-center gap-4 px-4">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-gray-100 flex-shrink-0"
+        >
+          <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <Landmark className="h-4.5 w-4.5 text-white" />
+          </div>
+          <span className="hidden sm:inline">BillBreakdown</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-          >
-            <Search className="h-4 w-4" />
-            Search
-          </Link>
-          <Link
-            href="/federal"
-            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-          >
-            <Landmark className="h-4 w-4" />
-            Federal
-          </Link>
-          <Link
-            href="/states"
-            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-          >
-            <Globe className="h-4 w-4" />
-            Rhode Island
-          </Link>
-          <Link
-            href="/search"
-            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400 transition-colors"
-          >
-            <FileText className="h-4 w-4" />
-            Browse All
-          </Link>
+        {/* Search bar — center of header on desktop */}
+        <div className="hidden md:flex flex-1 max-w-md mx-auto">
+          <SearchBar />
+        </div>
+
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1 flex-shrink-0">
+          {NAV_LINKS.map(({ href, label }) => {
+            const isActive = pathname === href || pathname.startsWith(href + "/");
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+              >
+                {label}
+              </Link>
+            );
+          })}
+          <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
           <TrackedNavBadge />
           <DarkModeToggle />
         </nav>
 
-        {/* Mobile nav */}
-        <nav className="flex md:hidden items-center gap-4 text-sm">
-          <Link href="/federal" className="text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400">Federal</Link>
-          <Link href="/states" className="text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400">RI</Link>
-          <Link href="/tracked" className="text-gray-600 dark:text-gray-400 hover:text-amber-500 dark:hover:text-amber-400">Tracked</Link>
+        {/* Mobile: search + menu */}
+        <div className="flex md:hidden items-center gap-2 ml-auto">
+          <TrackedNavBadge compact />
           <DarkModeToggle />
-        </nav>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 space-y-1">
+          <div className="pb-3">
+            <SearchBar />
+          </div>
+          {NAV_LINKS.map(({ href, label }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "block px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+              >
+                {label}
+              </Link>
+            );
+          })}
+          <Link
+            href="/tracked"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+          >
+            Tracked Bills
+          </Link>
+        </div>
+      )}
     </header>
   );
 }
