@@ -42,6 +42,9 @@ export async function GET(request: NextRequest) {
     250
   );
   const batch = parseInt(request.nextUrl.searchParams.get("batch") ?? "30");
+  // skipLimit: how many total bills to scan (including skips) before returning
+  // This allows fast scanning through pages where most bills already exist
+  const skipLimit = parseInt(request.nextUrl.searchParams.get("skipLimit") ?? "250");
 
   const results = { created: 0, updated: 0, errors: 0, skipped: 0 };
   const startTime = Date.now();
@@ -58,8 +61,10 @@ export async function GET(request: NextRequest) {
     for (const bill of bills) {
       // Safety: stop before hitting Vercel's 60s timeout
       if (Date.now() - startTime > TIMEOUT_BUFFER_MS) break;
-      // Stop at batch limit
-      if (processed >= batch) break;
+      // Stop if we've created enough new bills for this invocation
+      if (results.created >= batch) break;
+      // Stop if we've scanned too many total bills (prevents infinite skip loops)
+      if (processed >= skipLimit) break;
 
       try {
         const type = bill.type;
