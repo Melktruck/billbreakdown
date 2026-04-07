@@ -121,13 +121,50 @@ export async function getBillVotes(congress: number, type: string, number: strin
 }
 
 export function mapCongressStatus(latestActionText: string): string {
+  if (!latestActionText) return "INTRODUCED";
   const text = latestActionText.toLowerCase();
-  if (text.includes("became public law") || text.includes("signed by president")) return "SIGNED";
+
+  // Signed into law (public or private)
+  if (text.includes("became public law") || text.includes("became private law") || text.includes("signed by president")) return "SIGNED";
+
+  // Vetoed
   if (text.includes("vetoed")) return "VETOED";
-  if (text.includes("passed senate") && text.includes("passed house")) return "PASSED_BOTH";
-  if (text.includes("passed senate") || text.includes("passed house")) return "PASSED_CHAMBER";
+
+  // Enrolled (sent to president)
+  if (text.includes("presented to president") || text.includes("sent to president") || text.includes("enrolled bill")) return "ENROLLED";
+
+  // Passed both chambers
+  if ((text.includes("passed senate") || text.includes("passed/agreed to in senate")) &&
+      (text.includes("passed house") || text.includes("passed/agreed to in house"))) return "PASSED_BOTH";
+
+  // Resolving differences between chambers
+  if (text.includes("conference report") || text.includes("resolving differences")) return "PASSED_BOTH";
+
+  // Passed one chamber
+  if (text.includes("passed senate") || text.includes("passed house") ||
+      text.includes("passed/agreed to in senate") || text.includes("passed/agreed to in house") ||
+      text.includes("received in the senate") || text.includes("received in the house")) return "PASSED_CHAMBER";
+
+  // Floor action
   if (text.includes("placed on") && text.includes("calendar")) return "FLOOR";
-  if (text.includes("referred to the committee") || text.includes("referred to committee")) return "REFERRED";
-  if (text.includes("introduced")) return "INTRODUCED";
+  if (text.includes("cloture") || text.includes("motion to proceed")) return "FLOOR";
+  if (text.includes("rule provides") || text.includes("rules committee")) return "FLOOR";
+  if (text.includes("motion to reconsider") || text.includes("laid on the table")) return "FLOOR";
+  if (text.includes("agreed to") && !text.includes("referred")) return "FLOOR";
+
+  // Committee stage — ordered to be reported means committee approved it
+  if (text.includes("ordered to be reported")) return "COMMITTEE";
+  if (text.includes("hearings held") || text.includes("hearing held")) return "COMMITTEE";
+  if (text.includes("committee consideration") || text.includes("markup")) return "COMMITTEE";
+
+  // Referred to committee (most common for new bills)
+  if (text.includes("referred to")) return "REFERRED";
+
+  // Introduced
+  if (text.includes("introduced") || text.includes("sponsor introductory remarks")) return "INTRODUCED";
+
+  // Failed
+  if (text.includes("failed") || text.includes("defeated") || text.includes("rejected")) return "FAILED";
+
   return "UNKNOWN";
 }
