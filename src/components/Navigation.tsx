@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Landmark, Search, FileText, Globe } from "lucide-react";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
+import { TrackedNavBadge } from "@/components/TrackedNavBadge";
 
 export function Navigation() {
   return (
@@ -40,6 +41,7 @@ export function Navigation() {
             <FileText className="h-4 w-4" />
             Browse All
           </Link>
+          <TrackedNavBadge />
           <DarkModeToggle />
         </nav>
 
@@ -47,6 +49,7 @@ export function Navigation() {
         <nav className="flex md:hidden items-center gap-4 text-sm">
           <Link href="/federal" className="text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400">Federal</Link>
           <Link href="/states" className="text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-400">RI</Link>
+          <Link href="/tracked" className="text-gray-600 dark:text-gray-400 hover:text-amber-500 dark:hover:text-amber-400">Tracked</Link>
           <DarkModeToggle />
         </nav>
       </div>

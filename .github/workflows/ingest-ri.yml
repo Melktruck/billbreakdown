@@ -1,0 +1,67 @@
+name: Bulk Ingest RI Bills
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_offset:
+        description: 'Starting offset (default 0)'
+        default: '0'
+        required: false
+      end_offset:
+        description: 'Ending offset (default 3000)'
+        default: '3000'
+        required: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Ingest all RI bills in 50-bill batches
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          START=${{ github.event.inputs.start_offset || '0' }}
+          END=${{ github.event.inputs.end_offset || '3000' }}
+          TOTAL_CREATED=0
+          TOTAL_UPDATED=0
+
+          echo "Starting bulk RI ingestion from offset $START to $END"
+          echo "============================================"
+
+          for OFFSET in $(seq $START 50 $END); do
+            echo ""
+            echo "--- Batch offset $OFFSET ---"
+
+            RESPONSE=$(curl -s --max-time 70 \
+              "https://billbreakdown.vercel.app/api/cron/states?offset=$OFFSET&limit=50&secret=$CRON_SECRET" \
+              2>&1)
+
+            echo "$RESPONSE"
+
+            CREATED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('created',0))" 2>/dev/null || echo "0")
+            UPDATED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('updated',0))" 2>/dev/null || echo "0")
+            SKIPPED=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('skipped',0))" 2>/dev/null || echo "0")
+            ERRORS=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('errors',0))" 2>/dev/null || echo "0")
+            BATCH_TOTAL=$((CREATED + UPDATED + SKIPPED + ERRORS))
+
+            TOTAL_CREATED=$((TOTAL_CREATED + CREATED))
+            TOTAL_UPDATED=$((TOTAL_UPDATED + UPDATED))
+
+            echo "  Created: $CREATED | Updated: $UPDATED | Skipped: $SKIPPED | Errors: $ERRORS | Batch total: $BATCH_TOTAL"
+
+            # Stop only when a batch returns truly nothing processed
+            if [ "$BATCH_TOTAL" -eq "0" ] && [ "$OFFSET" -gt "0" ]; then
+              echo ""
+              echo "No bills processed at offset $OFFSET - reached end of master list."
+              break
+            fi
+
+            sleep 3
+          done
+
+          echo ""
+          echo "============================================"
+          echo "Bulk ingestion complete!"
+          echo "Total created: $TOTAL_CREATED"
+          echo "Total updated: $TOTAL_UPDATED"
